@@ -1,0 +1,17 @@
+stages:         
+  - build
+  - test
+  - pulish
+  - deploy
+
+build:      
+    stage: build
+    image: docker:latest
+    services:
+    - name: docker:dind
+      alias: docker
+    script:
+    - docker build -t $CI_REGISTRY_IMAGE /worker
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE
+    - echo $CI_REGISTRY_IMAGE
