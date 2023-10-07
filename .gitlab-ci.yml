@@ -1,7 +1,7 @@
 stages:         
   - build
   - test
-  - pulish
+  - publish
   - deploy
 
 build-worker:      
