@@ -50,7 +50,8 @@ test-rng:
     - name: docker:dind
       alias: docker
     script:
-    - docker run -d --rm --name rng registry.gitlab.com/brahimhamdi/dockercoins/rng
+    - docker run -d --rm --name rng -p 8001:80 registry.gitlab.com/brahimhamdi/dockercoins/rng
+    - curl http://localhost:8001
     - sleep 10
     - docker stop rng
 test-hasher:      
@@ -60,6 +61,7 @@ test-hasher:
     - name: docker:dind
       alias: docker
     script:
-    - docker run -d --rm --name hasher registry.gitlab.com/brahimhamdi/dockercoins/hasher
+    - docker run -d --rm --name hasher -p 8002:80 registry.gitlab.com/brahimhamdi/dockercoins/hasher
+    - curl http://localhost:8001
     - sleep 10
     - docker stop hasher
