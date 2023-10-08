@@ -40,7 +40,7 @@ test-worker:
     - name: docker:dind
       alias: docker
     script:
-    - docker run --rm --name worker registry.gitlab.com/brahimhamdi/dockercoins/worker
+    - docker run -d --rm --name worker registry.gitlab.com/brahimhamdi/dockercoins/worker
     - sleep 10
     - docker stop worker
 test-rng:      
@@ -50,7 +50,7 @@ test-rng:
     - name: docker:dind
       alias: docker
     script:
-    - docker run --rm --name rng registry.gitlab.com/brahimhamdi/dockercoins/rng
+    - docker run -d --rm --name rng registry.gitlab.com/brahimhamdi/dockercoins/rng
     - sleep 10
     - docker stop rng
 test-hasher:      
@@ -60,6 +60,6 @@ test-hasher:
     - name: docker:dind
       alias: docker
     script:
-    - docker run --rm --name hasher registry.gitlab.com/brahimhamdi/dockercoins/hasher
+    - docker run -d --rm --name hasher registry.gitlab.com/brahimhamdi/dockercoins/hasher
     - sleep 10
     - docker stop hasher
