@@ -1,0 +1,67 @@
+stages:         
+  - build
+  - test
+  - deploy
+
+build-worker:      
+    stage: build
+    image: docker:latest
+    services:
+    - name: docker:dind
+      alias: docker
+    script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t registry.gitlab.com/brahimhamdi/dockercoins/worker worker/
+    - docker push registry.gitlab.com/brahimhamdi/dockercoins/worker
+build-rng:      
+    stage: build
+    image: docker:latest
+    services:
+    - name: docker:dind
+      alias: docker
+    script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t registry.gitlab.com/brahimhamdi/dockercoins/rng rng/
+    - docker push registry.gitlab.com/brahimhamdi/dockercoins/rng
+build-hasher:      
+    stage: build
+    image: docker:latest
+    services:
+    - name: docker:dind
+      alias: docker
+    script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t registry.gitlab.com/brahimhamdi/dockercoins/hasher hasher/
+    - docker push registry.gitlab.com/brahimhamdi/dockercoins/hasher
+test-worker:      
+    stage: test
+    image: docker:latest
+    services:
+    - name: docker:dind
+      alias: docker
+    script:
+    - docker run -d --rm --name worker registry.gitlab.com/brahimhamdi/dockercoins/worker
+    - sleep 10
+    - docker stop worker
+test-rng:      
+    stage: test
+    image: docker:latest
+    services:
+    - name: docker:dind
+      alias: docker
+    script:
+    - docker run -d --rm --name rng -p 8001:80 registry.gitlab.com/brahimhamdi/dockercoins/rng
+    - curl http://localhost:8001
+    - sleep 20
+    - docker stop rng
+test-hasher:      
+    stage: test
+    image: docker:latest
+    services:
+    - name: docker:dind
+      alias: docker
+    script:
+    - docker run -d --rm --name hasher -p 8002:80 registry.gitlab.com/brahimhamdi/dockercoins/hasher
+    - curl http://localhost:8002
+    - sleep 20
+    - docker stop hasher
