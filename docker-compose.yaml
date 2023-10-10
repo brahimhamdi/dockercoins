@@ -1,15 +1,11 @@
 version: "3"
 services:
   worker:
-    image: worker
-    build: worker/
-  
+    image: registry.gitlab.com/brahimhamdi/dockercoins/worker
   rng:
-    image: rng
-    build: rng/
+    image: registry.gitlab.com/brahimhamdi/dockercoins/rng
   hasher:
-    image: hasher
-    build: hasher/
+    image: registry.gitlab.com/brahimhamdi/dockercoins/hasher
   webui:
     image: brahimhamdi/webui
     ports:
