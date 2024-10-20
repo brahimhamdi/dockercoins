@@ -6,17 +6,11 @@ services:
   rng:
     image: rng
     build: ./rng
-    ports:
-    - 8001:80
   hasher:
     image: hasher
     build: ./hasher
-    ports:
-    - 8002:80
   webui:
     image: brahimhamdi/webui
-    ports:
-    - 8000:80
   redis:
     image: redis
 
