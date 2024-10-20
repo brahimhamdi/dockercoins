@@ -11,6 +11,8 @@ services:
     build: ./hasher
   webui:
     image: brahimhamdi/webui
+    ports:
+    - 8000:80
   redis:
     image: redis
 
