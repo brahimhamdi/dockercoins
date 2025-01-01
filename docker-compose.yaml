@@ -2,17 +2,18 @@ version: "3"
 services:
   rng:
     build: ./rng
-      - "8001:80"
+    ports:
+    - "8001:80"
   hasher:
     build: ./hasher
     ports:
-      - "8002:80"
+    - "8002:80"
   webui:
     build: ./webui
     ports:
-      - "8000:80"
+    - "8000:80"
     volumes:
-      - "./webui/files/:/files/"
+    - "./webui/files/:/files/"
   redis:
     image: redis
   worker:
