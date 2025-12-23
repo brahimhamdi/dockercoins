@@ -1,15 +1,49 @@
 services:
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - dockercoins_network
+
   rng:
     build: ./rng
+    image: rng:1.0
+    ports:
+      - "8001:80"
+    networks:
+      - dockercoins_network
+
   hasher:
     build: ./hasher
-  webui:
-    build: ./webui
+    image: hasher:1.0
     ports:
-    - 8000:80
-    volumes:
-    - "./webui/files/:/files/"
-  redis:
-    image: redis
+      - "8002:80"
+    networks:
+      - dockercoins_network
+
   worker:
     build: ./worker
+    image: worker:1.0
+    networks:
+      - dockercoins_network
+
+  webui:
+    build: ./webui
+    image: webui:1.0
+    ports:
+      - "8000:80"
+    volumes:
+      - ./webui/files:/usr/local/apache2/htdocs:ro
+    networks:
+      - dockercoins_network
+
+volumes:
+  redis_data:
+
+networks:
+  dockercoins_network:
+    driver: bridge
+
