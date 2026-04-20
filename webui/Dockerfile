@@ -1,13 +1,16 @@
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY files/package.json .
-RUN npm install --production
-
 FROM node:18-alpine
+
 WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY files/ .
-RUN adduser -D nodejs && chown -R nodejs:nodejs /app
-USER nodejs
+
+# Copie des fichiers statiques et du serveur
+COPY files/ ./files/
+COPY webui.js .
+
+# Création d’un utilisateur non‑root
+RUN adduser -D nodeuser && chown -R nodeuser:nodeuser /app
+
+USER nodeuser
+
 EXPOSE 80
+
 CMD ["node", "webui.js"]
