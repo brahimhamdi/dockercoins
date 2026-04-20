@@ -1,7 +1,8 @@
-FROM ruby:alpine
-RUN apk add --update build-base curl
-RUN gem install sinatra --version '~> 3'
-RUN gem install thin --version '~> 1.8'
-ADD hasher.rb /
-CMD ["ruby", "hasher.rb"]
+FROM ruby:3.2-alpine
+WORKDIR /app
+RUN gem install sinatra webrick
+COPY hasher.rb .
+RUN adduser -D hasher && chown -R hasher:hasher /app
+USER hasher
 EXPOSE 80
+CMD ["ruby", "hasher.rb", "-o", "0.0.0.0"]

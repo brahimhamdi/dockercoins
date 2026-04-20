@@ -1,11 +1,13 @@
-FROM node:lts-slim
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY files/package.json .
+RUN npm install --production
 
-# Needed for node 15+ see https://stackoverflow.com/a/65443098
-WORKDIR /usr/app
-
-RUN npm install express
-RUN npm install redis@3
-COPY files/ ./files/
-COPY webui.js .
-CMD ["node", "webui.js"]
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY files/ .
+RUN adduser -D nodejs && chown -R nodejs:nodejs /app
+USER nodejs
 EXPOSE 80
+CMD ["node", "webui.js"]
