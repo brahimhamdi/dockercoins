@@ -1,6 +1,6 @@
 FROM ruby:3.2-alpine
 WORKDIR /app
-RUN gem install sinatra webrick
+RUN gem install sinatra webrick rackup puma
 COPY hasher.rb .
 RUN adduser -D hasher && chown -R hasher:hasher /app
 USER hasher
