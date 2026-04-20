@@ -1,16 +1,11 @@
-FROM node:18-alpine
+FROM node:lts-slim
 
-WORKDIR /app
+WORKDIR /usr/app
 
-# Installer express globalement (ou localement)
 RUN npm install express
-
-# Copier les fichiers
+RUN npm install redis@3
 COPY files/ ./files/
 COPY webui.js .
-
-RUN adduser -D nodeuser && chown -R nodeuser:nodeuser /app
-USER nodeuser
-
-EXPOSE 80
 CMD ["node", "webui.js"]
+EXPOSE 80
+
