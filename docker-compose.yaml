@@ -29,7 +29,10 @@ services:
     image: worker:1.0
     networks:
       - dockercoins_network
-
+    depends_on:
+      - redis
+      - rng
+      - hasher
   webui:
     build: ./webui
     image: webui:1.0
