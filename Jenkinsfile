@@ -28,7 +28,7 @@ pipeline {
     stage('Test') {
       steps {
         sh '''
-          docker run -d -p 8001:80 --name rng_test $DOCKERHUB_USER/rng:$IMAGE_TAG
+          docker run -d --rm -p 8001:80 --name rng_test $DOCKERHUB_USER/rng:$IMAGE_TAG
           sleep 3
           curl -sf http://localhost:8001/10 > /dev/null && echo "rng smoke test OK"
           docker rm -f rng_test
