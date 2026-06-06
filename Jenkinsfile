@@ -3,7 +3,7 @@ pipeline {
   environment {
     DOCKERHUB_USER = 'brahimhamdi'
     IMAGE_TAG      = "${env.BUILD_NUMBER}"
-    DOCKERHUB      = credentials('dockerhub')   // -> _USR and _PSW
+    DOCKERHUB      = credentials('dockerhub')
   }
   options { timestamps() }
 
@@ -11,7 +11,7 @@ pipeline {
     stage('Checkout') {
       steps {
         git url: 'https://github.com/brahimhamdi/dockercoins.git',
-            branch: 'main'
+            branch: 'master'
       }
     }
 
@@ -28,11 +28,9 @@ pipeline {
     stage('Test') {
       steps {
         sh '''
-          docker run -d -p 8001:80 --name rng_test \
-                 $DOCKERHUB_USER/rng:$IMAGE_TAG
+          docker run -d -p 8001:80 --name rng_test $DOCKERHUB_USER/rng:$IMAGE_TAG
           sleep 3
-          curl -sf http://localhost:8001/10 > /dev/null \
-                 && echo "rng smoke test OK"
+          curl -sf http://localhost:8001/10 > /dev/null && echo "rng smoke test OK"
           docker rm -f rng_test
         '''
       }
@@ -40,13 +38,11 @@ pipeline {
 
     stage('Push') {
       steps {
-        sh 'echo "$DOCKERHUB_PSW" | docker login \
-                -u "$DOCKERHUB_USR" --password-stdin'
+        sh 'echo "$DOCKERHUB_PSW" | docker login -u "$DOCKERHUB_USR" --password-stdin'
         script {
           for (svc in ['rng','hasher','worker','webui']) {
             sh "docker push $DOCKERHUB_USER/${svc}:$IMAGE_TAG"
-            sh "docker tag  $DOCKERHUB_USER/${svc}:$IMAGE_TAG \
-                    $DOCKERHUB_USER/${svc}:latest"
+            sh "docker tag  $DOCKERHUB_USER/${svc}:$IMAGE_TAG $DOCKERHUB_USER/${svc}:latest"
             sh "docker push $DOCKERHUB_USER/${svc}:latest"
           }
         }
