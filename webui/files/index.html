@@ -1,93 +1,726 @@
 <!doctype html>
-<html>
+<html lang="fr">
 <head>
-<title>DockerCoin Miner WebUI</title>
-<link rel="stylesheet" type="text/css" href="rickshaw.min.css"> 
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DockerCoins — Tableau de bord</title>
+<link rel="icon" href="data:,">
 <style>
-#graph {
-    background-color: #eee;
-    width: 800px;
-    height: 400px;
-}
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #10121a;
+    --bg-grid: #161926;
+    --panel: #171a24;
+    --panel-hi: #1d2130;
+    --border: #262b3c;
+    --border-soft: #1e2230;
+    --text: #f1f2f6;
+    --text-lo: #868ca1;
+    --text-faint: #565c73;
+    --copper: #e3a537;
+    --copper-soft: rgba(227,165,55,0.12);
+    --copper-dim: #a9793a;
+    --mint: #4fd1a5;
+    --mint-soft: rgba(79,209,165,0.12);
+    --rose: #e2607a;
+    --rose-soft: rgba(226,96,122,0.12);
+    --radius: 10px;
+    --font-sans: "IBM Plex Sans", -apple-system, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body{
+    min-height:100vh;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size: 28px 28px;
+    background-position: -14px -14px;
+    padding: 32px 20px 48px;
+  }
+
+  a{ color: var(--copper); }
+
+  .wrap{
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .eyebrow{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--copper-dim);
+    margin: 0 0 6px;
+  }
+
+  h1{
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  h1 .coin{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(155deg, var(--copper), #a9793a);
+    color: #1a1204;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 15px;
+    flex: none;
+  }
+
+  .status-cluster{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+
+  .status-pill{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text-lo);
+    transition: background .3s ease, border-color .3s ease, color .3s ease;
+  }
+  .status-pill .dot{
+    width:7px; height:7px; border-radius:50%;
+    background: var(--text-faint);
+    flex: none;
+  }
+  .status-pill.online{ color: var(--mint); border-color: rgba(79,209,165,0.28); background: var(--mint-soft); }
+  .status-pill.online .dot{ background: var(--mint); box-shadow: 0 0 0 3px var(--mint-soft); }
+  .status-pill.offline{ color: var(--rose); border-color: rgba(226,96,122,0.3); background: var(--rose-soft); }
+  .status-pill.offline .dot{ background: var(--rose); box-shadow: 0 0 0 3px var(--rose-soft); }
+  .status-pill.pending .dot{ animation: pulse 1.2s ease-in-out infinite; }
+
+  @keyframes pulse{
+    0%,100%{ opacity:1; } 50%{ opacity:.35; }
+  }
+
+  .icon-btn{
+    display:flex; align-items:center; justify-content:center;
+    width: 34px; height: 34px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text-lo);
+    cursor: pointer;
+    transition: color .2s ease, border-color .2s ease, background .2s ease;
+  }
+  .icon-btn:hover{ color: var(--text); border-color: var(--copper-dim); }
+  .icon-btn:focus-visible, .status-pill:focus-visible{
+    outline: 2px solid var(--copper);
+    outline-offset: 2px;
+  }
+  .icon-btn svg{ width:15px; height:15px; }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    display:grid;
+    grid-template-columns: minmax(200px, 300px) 1fr;
+    gap: 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow:hidden;
+    margin-bottom: 16px;
+  }
+
+  .hero-figure{
+    padding: 26px 26px 22px;
+    border-right: 1px solid var(--border-soft);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap: 6px;
+  }
+
+  .hero-label{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-lo);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .hero-number{
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: clamp(38px, 6.5vw, 56px);
+    line-height: 1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    display:flex;
+    align-items:baseline;
+    gap: 8px;
+  }
+  .hero-number small{
+    font-size: 15px;
+    color: var(--copper);
+    font-weight: 500;
+  }
+
+  .hero-sub{
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-top: 4px;
+  }
+
+  .hero-chart{
+    position:relative;
+    min-height: 200px;
+  }
+
+  .hero-chart canvas{
+    display:block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .chart-empty{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-align:center;
+    padding: 0 24px;
+  }
+
+  .chart-tooltip{
+    position:absolute;
+    pointer-events:none;
+    background: #0c0d13;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    transform: translate(-50%, -130%);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity .12s ease;
+    z-index: 3;
+  }
+
+  /* ---------- Stat grid ---------- */
+  .stats{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card .label{
+    font-size: 12.5px;
+    color: var(--text-lo);
+    margin-bottom: 8px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .stat-card .value{
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-card.pulse::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background: var(--copper-soft);
+    animation: flash 0.7s ease-out;
+    pointer-events:none;
+  }
+  @keyframes flash{
+    0%{ opacity:1; } 100%{ opacity:0; }
+  }
+
+  /* ---------- Pipeline strip ---------- */
+  .pipeline{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display:flex;
+    align-items:center;
+    gap: 6px;
+    overflow-x:auto;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--text-lo);
+  }
+
+  .pipeline .node{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-soft);
+    white-space: nowrap;
+    flex: none;
+  }
+  .pipeline .node.current{
+    color: var(--copper);
+    border-color: rgba(227,165,55,0.35);
+    background: var(--copper-soft);
+    font-weight: 600;
+  }
+  .pipeline .arrow{
+    color: var(--text-faint);
+    flex: none;
+  }
+  .pipeline .hint{
+    margin-left: auto;
+    color: var(--text-faint);
+    font-size: 11.5px;
+    padding-left: 12px;
+    flex: none;
+  }
+
+  footer{
+    text-align:center;
+    color: var(--text-faint);
+    font-size: 12px;
+    margin-top: 22px;
+    font-family: var(--font-mono);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 720px){
+    .hero{ grid-template-columns: 1fr; }
+    .hero-figure{ border-right:none; border-bottom: 1px solid var(--border-soft); }
+    .stats{ grid-template-columns: 1fr; }
+    .pipeline .hint{ display:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
 </style>
-<script src="jquery.js"></script>
-<script src="d3.min.js"></script>
-<script src="rickshaw.min.js"></script>
-<script>
-
-String.prototype.format = function () {
-    var args = arguments;
-    return this.replace(/\{(\d+)\}/g, function (m, n) { return args[n]; });
-};
-
-var series = [];
-var points = []
-var graph = null;
-
-function refresh () {
-    $.ajax({ url: "json" }).done(function (data) {
-        series.push(data);
-        while (series.length < 250) {
-            data = JSON.parse(JSON.stringify(data));
-            data.now -= 1;
-            series.unshift(data);
-        }
-        while (series.length > 250) {
-            series.shift();
-        }
-        while (points.length > 0) {
-            points.pop();
-        }
-        for (var i=0; i<series.length-1; i++) {
-            // Compute instantaneous speed
-            var s1 = series[i];
-            var s2 = series[i+1];
-            var speed = (s2.hashes-s1.hashes)/(s2.now-s1.now);
-            points.push({ x: s2.now, y: speed });
-        }
-        if (graph == null) {
-            graph = new Rickshaw.Graph({
-                renderer: "area",
-                stroke: true,
-                width: 800,
-                height: 400,
-                element: $("#graph")[0],
-                preserve: true,
-                series: [
-                    { name: "Coins",
-                      color: "steelblue",
-                      data: points 
-                    }
-                ]
-            });
-            graph.render();
-            var yAxis = new Rickshaw.Graph.Axis.Y({
-                graph: graph,
-                tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-                ticksTreatment: "glow"
-            });
-            yAxis.render();
-        } else {
-            graph.update();
-            $("text").css({
-                "font-size": "15px",
-                "font-weight": "normal",
-                "opacity": 0.5,
-            });
-        }
-    });
-}
-
-$(function () {
-    setInterval(refresh, 1000);
-});
-</script>
 </head>
 <body>
 
-<h1>DockerCoin Miner WebUI</h1>
+<div class="wrap">
 
-<div id="graph"></div>
+  <header>
+    <div>
+      <p class="eyebrow">Tableau de bord de minage</p>
+      <h1><span class="coin">D</span> DockerCoins</h1>
+    </div>
+    <div class="status-cluster">
+      <button class="icon-btn" id="toggleBtn" type="button" aria-pressed="false" title="Mettre en pause le direct">
+        <svg id="iconPause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="5" width="4" height="14"></rect><rect x="14" y="5" width="4" height="14"></rect></svg>
+        <svg id="iconPlay" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+      </button>
+      <div class="status-pill pending" id="statusPill">
+        <span class="dot"></span>
+        <span id="statusText">Connexion…</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-figure">
+      <p class="hero-label">Cadence de minage</p>
+      <div class="hero-number"><span id="rateValue">—</span><small>hachages / s</small></div>
+      <p class="hero-sub" id="rateSub">En attente des premières données…</p>
+    </div>
+    <div class="hero-chart" id="chartWrap">
+      <canvas id="chart"></canvas>
+      <div class="chart-empty" id="chartEmpty">Le graphique s'affichera dès que le flux démarre</div>
+      <div class="chart-tooltip" id="chartTooltip"></div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat-card" id="coinsCard">
+      <div class="label">Pièces minées</div>
+      <div class="value" id="coinsValue">—</div>
+    </div>
+    <div class="stat-card" id="hashesCard">
+      <div class="label">Hachages cumulés</div>
+      <div class="value" id="hashesValue">—</div>
+    </div>
+    <div class="stat-card" id="uptimeCard">
+      <div class="label">Temps d'activité</div>
+      <div class="value" id="uptimeValue">00:00:00</div>
+    </div>
+  </section>
+
+  <section class="pipeline" aria-label="Chaîne de traitement DockerCoins">
+    <span class="node">rng</span>
+    <span class="arrow">→</span>
+    <span class="node">hasher</span>
+    <span class="arrow">→</span>
+    <span class="node">worker</span>
+    <span class="arrow">→</span>
+    <span class="node">redis</span>
+    <span class="arrow">→</span>
+    <span class="node current">webui</span>
+    <span class="hint">webui interroge redis toutes les secondes via <code>/json</code></span>
+  </section>
+
+  <footer>DockerCoins WebUI — actualisation automatique chaque seconde</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var POLL_MS = 1000;
+  var MAX_POINTS = 120;
+  var FETCH_TIMEOUT = 4000;
+
+  var history = [];       // {t, rate}
+  var lastSample = null;  // {hashes, coins, now}
+  var paused = false;
+  var pollTimer = null;
+  var consecutiveFailures = 0;
+  var startedAt = Date.now();
+
+  var el = {
+    statusPill: document.getElementById('statusPill'),
+    statusText: document.getElementById('statusText'),
+    toggleBtn: document.getElementById('toggleBtn'),
+    iconPause: document.getElementById('iconPause'),
+    iconPlay: document.getElementById('iconPlay'),
+    rateValue: document.getElementById('rateValue'),
+    rateSub: document.getElementById('rateSub'),
+    coinsValue: document.getElementById('coinsValue'),
+    coinsCard: document.getElementById('coinsCard'),
+    hashesValue: document.getElementById('hashesValue'),
+    uptimeValue: document.getElementById('uptimeValue'),
+    chartWrap: document.getElementById('chartWrap'),
+    chart: document.getElementById('chart'),
+    chartEmpty: document.getElementById('chartEmpty'),
+    chartTooltip: document.getElementById('chartTooltip')
+  };
+
+  var ctx = el.chart.getContext('2d');
+
+  /* ---------- formatting helpers ---------- */
+  var frGroup = new Intl.NumberFormat('fr-FR');
+  var frCompact = new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 });
+
+  function fmtRate(n){
+    if (n == null || isNaN(n)) return '—';
+    return frGroup.format(Math.max(0, Math.round(n)));
+  }
+  function fmtCompact(n){
+    if (n == null || isNaN(n)) return '—';
+    return frCompact.format(n);
+  }
+  function fmtUptime(ms){
+    var s = Math.floor(ms / 1000);
+    var h = Math.floor(s / 3600);
+    var m = Math.floor((s % 3600) / 60);
+    var sec = s % 60;
+    function pad(x){ return String(x).padStart(2, '0'); }
+    return pad(h) + ':' + pad(m) + ':' + pad(sec);
+  }
+
+  /* ---------- status ---------- */
+  function setStatus(state, text){
+    el.statusPill.className = 'status-pill ' + state;
+    el.statusText.textContent = text;
+  }
+
+  /* ---------- stat card pulse ---------- */
+  function flash(node){
+    node.classList.remove('pulse');
+    // force reflow so the animation can restart
+    void node.offsetWidth;
+    node.classList.add('pulse');
+  }
+
+  /* ---------- canvas chart ---------- */
+  var dpr = window.devicePixelRatio || 1;
+
+  function resizeCanvas(){
+    var rect = el.chartWrap.getBoundingClientRect();
+    el.chart.width = Math.max(1, Math.floor(rect.width * dpr));
+    el.chart.height = Math.max(1, Math.floor(rect.height * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawChart();
+  }
+
+  function drawChart(hoverIndex){
+    var w = el.chartWrap.clientWidth;
+    var h = el.chartWrap.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+
+    if (history.length < 2){
+      el.chartEmpty.style.display = 'flex';
+      return;
+    }
+    el.chartEmpty.style.display = 'none';
+
+    var padL = 8, padR = 8, padT = 18, padB = 18;
+    var innerW = w - padL - padR;
+    var innerH = h - padT - padB;
+
+    var values = history.map(function(p){ return p.rate; });
+    var maxVal = Math.max.apply(null, values);
+    if (maxVal <= 0) maxVal = 1;
+    maxVal *= 1.15; // headroom
+
+    function xAt(i){ return padL + (i / (history.length - 1)) * innerW; }
+    function yAt(v){ return padT + innerH - (v / maxVal) * innerH; }
+
+    // gridlines
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    for (var g = 0; g <= 3; g++){
+      var gy = padT + (innerH / 3) * g;
+      ctx.beginPath();
+      ctx.moveTo(padL, gy);
+      ctx.lineTo(w - padR, gy);
+      ctx.stroke();
+    }
+
+    // area fill
+    var grad = ctx.createLinearGradient(0, padT, 0, padT + innerH);
+    grad.addColorStop(0, 'rgba(227,165,55,0.32)');
+    grad.addColorStop(1, 'rgba(227,165,55,0.02)');
+
+    ctx.beginPath();
+    ctx.moveTo(xAt(0), yAt(values[0]));
+    for (var i = 1; i < values.length; i++){
+      ctx.lineTo(xAt(i), yAt(values[i]));
+    }
+    ctx.lineTo(xAt(values.length - 1), padT + innerH);
+    ctx.lineTo(xAt(0), padT + innerH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // line
+    ctx.beginPath();
+    ctx.moveTo(xAt(0), yAt(values[0]));
+    for (i = 1; i < values.length; i++){
+      ctx.lineTo(xAt(i), yAt(values[i]));
+    }
+    ctx.strokeStyle = '#e3a537';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // current point
+    var lastX = xAt(values.length - 1);
+    var lastY = yAt(values[values.length - 1]);
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#e3a537';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 8, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(227,165,55,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // hover crosshair
+    if (hoverIndex != null && hoverIndex >= 0 && hoverIndex < values.length){
+      var hx = xAt(hoverIndex), hy = yAt(values[hoverIndex]);
+      ctx.beginPath();
+      ctx.moveTo(hx, padT);
+      ctx.lineTo(hx, padT + innerH);
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(hx, hy, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#f1f2f6';
+      ctx.fill();
+    }
+  }
+
+  function handleMove(evt){
+    if (history.length < 2) return;
+    var rect = el.chartWrap.getBoundingClientRect();
+    var x = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left;
+    var padL = 8, padR = 8;
+    var innerW = rect.width - padL - padR;
+    var ratio = Math.min(1, Math.max(0, (x - padL) / innerW));
+    var idx = Math.round(ratio * (history.length - 1));
+    drawChart(idx);
+
+    var point = history[idx];
+    el.chartTooltip.textContent = fmtRate(point.rate) + ' h/s';
+    el.chartTooltip.style.left = x + 'px';
+    el.chartTooltip.style.top = (rect.height - (rect.height - 40)) + 'px';
+    var padT = 18, innerH = rect.height - padT - 18;
+    var values = history.map(function(p){ return p.rate; });
+    var maxVal = Math.max.apply(null, values) * 1.15 || 1;
+    var y = padT + innerH - (point.rate / maxVal) * innerH;
+    el.chartTooltip.style.top = y + 'px';
+    el.chartTooltip.style.opacity = 1;
+  }
+
+  function handleLeave(){
+    el.chartTooltip.style.opacity = 0;
+    drawChart();
+  }
+
+  el.chartWrap.addEventListener('mousemove', handleMove);
+  el.chartWrap.addEventListener('mouseleave', handleLeave);
+  el.chartWrap.addEventListener('touchmove', handleMove, { passive: true });
+  el.chartWrap.addEventListener('touchend', handleLeave);
+
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resizeCanvas, 80);
+  });
+
+  /* ---------- polling ---------- */
+  function fetchWithTimeout(url, ms){
+    var controller = new AbortController();
+    var id = setTimeout(function(){ controller.abort(); }, ms);
+    return fetch(url, { signal: controller.signal, cache: 'no-store' })
+      .finally(function(){ clearTimeout(id); });
+  }
+
+  function tick(){
+    fetchWithTimeout('json', FETCH_TIMEOUT)
+      .then(function(res){
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(onSample)
+      .catch(onFailure);
+  }
+
+  function onSample(data){
+    consecutiveFailures = 0;
+    setStatus('online', 'En ligne');
+
+    var hashes = parseFloat(data.hashes);
+    var coins = parseFloat(data.coins);
+    var now = parseFloat(data.now);
+    if (isNaN(hashes)) hashes = 0;
+    if (isNaN(coins)) coins = 0;
+    if (isNaN(now)) now = Date.now() / 1000;
+
+    if (lastSample){
+      var dt = now - lastSample.now;
+      var rate = dt > 0 ? (hashes - lastSample.hashes) / dt : 0;
+      if (rate < 0) rate = 0; // counter reset (e.g. redis flushed)
+
+      history.push({ t: now, rate: rate });
+      while (history.length > MAX_POINTS) history.shift();
+
+      el.rateValue.textContent = fmtRate(rate);
+      el.rateSub.textContent = history.length + ' points sur les ' + Math.min(MAX_POINTS, history.length * 1) + ' dernières secondes';
+      if (!paused) drawChart();
+
+      if (coins !== lastSample.coins) flash(el.coinsCard);
+    } else {
+      el.rateSub.textContent = 'Calcul de la cadence en cours…';
+    }
+
+    if (!lastSample || coins !== lastSample.coins) el.coinsValue.textContent = frGroup.format(coins);
+    el.hashesValue.textContent = fmtCompact(hashes);
+    el.hashesValue.title = frGroup.format(hashes) + ' hachages';
+
+    lastSample = { hashes: hashes, coins: coins, now: now };
+  }
+
+  function onFailure(err){
+    consecutiveFailures++;
+    if (consecutiveFailures >= 2){
+      setStatus('offline', 'Connexion perdue');
+      el.rateSub.textContent = 'Nouvelle tentative en cours…';
+    }
+  }
+
+  function scheduleNext(){
+    pollTimer = setTimeout(function(){
+      if (!paused) tick();
+      scheduleNext();
+    }, POLL_MS);
+  }
+
+  /* ---------- uptime ---------- */
+  setInterval(function(){
+    el.uptimeValue.textContent = fmtUptime(Date.now() - startedAt);
+  }, 1000);
+
+  /* ---------- pause/resume ---------- */
+  el.toggleBtn.addEventListener('click', function(){
+    paused = !paused;
+    el.toggleBtn.setAttribute('aria-pressed', String(paused));
+    el.toggleBtn.title = paused ? 'Reprendre le direct' : 'Mettre en pause le direct';
+    el.iconPause.style.display = paused ? 'none' : '';
+    el.iconPlay.style.display = paused ? '' : 'none';
+    if (paused){
+      setStatus('offline', 'En pause');
+    } else {
+      setStatus(consecutiveFailures >= 2 ? 'offline' : 'online', consecutiveFailures >= 2 ? 'Connexion perdue' : 'En ligne');
+    }
+  });
+
+  /* ---------- boot ---------- */
+  resizeCanvas();
+  tick();
+  scheduleNext();
+})();
+</script>
 
 </body>
 </html>
